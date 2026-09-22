@@ -1,0 +1,281 @@
+base_link
+position = [0.  0.  0.4]
+rotation =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+FL_hip
+position = [0.1934 0.0465 0.4   ]
+rotation =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+FL_calf
+position = [0.04060315 0.142      0.25160147]
+rotation =
+[[ 0.76484219 -0.         -0.64421769]
+ [ 0.          1.         -0.        ]
+ [ 0.64421769  0.          0.76484219]]
+quat wxyz = [ 0.93937271  0.         -0.34289781  0.        ]
+
+FL_foot
+position = [0.17782152 0.142      0.08869009]
+rotation =
+[[ 0.76484219 -0.         -0.64421769]
+ [ 0.          1.         -0.        ]
+ [ 0.64421769  0.          0.76484219]]
+quat wxyz = [ 0.93937271  0.         -0.34289781  0.        ]
+
+FR_hip
+position = [ 0.1934 -0.0465  0.4   ]
+rotation =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+FR_calf
+position = [ 0.04060315 -0.142       0.25160147]
+rotation =
+[[ 0.76484219 -0.         -0.64421769]
+ [ 0.          1.         -0.        ]
+ [ 0.64421769  0.          0.76484219]]
+quat wxyz = [ 0.93937271  0.         -0.34289781  0.        ]
+
+FR_foot
+position = [ 0.17782152 -0.142       0.08869009]
+rotation =
+[[ 0.76484219 -0.         -0.64421769]
+ [ 0.          1.         -0.        ]
+ [ 0.64421769  0.          0.76484219]]
+quat wxyz = [ 0.93937271  0.         -0.34289781  0.        ]
+
+RL_hip
+position = [-0.1934  0.0465  0.4   ]
+rotation =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+RL_calf
+position = [-0.37263332  0.142       0.28491561]
+rotation =
+[[ 0.87758256 -0.         -0.47942554]
+ [ 0.          1.         -0.        ]
+ [ 0.47942554  0.          0.87758256]]
+quat wxyz = [ 0.96891242  0.         -0.24740396  0.        ]
+
+RL_foot
+position = [-0.27051568  0.142       0.09799052]
+rotation =
+[[ 0.87758256 -0.         -0.47942554]
+ [ 0.          1.         -0.        ]
+ [ 0.47942554  0.          0.87758256]]
+quat wxyz = [ 0.96891242  0.         -0.24740396  0.        ]
+
+RR_hip
+position = [-0.1934 -0.0465  0.4   ]
+rotation =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+RR_calf
+position = [-0.37263332 -0.142       0.28491561]
+rotation =
+[[ 0.87758256 -0.         -0.47942554]
+ [ 0.          1.         -0.        ]
+ [ 0.47942554  0.          0.87758256]]
+quat wxyz = [ 0.96891242  0.         -0.24740396  0.        ]
+
+RR_foot
+position = [-0.27051568 -0.142       0.09799052]
+rotation =
+[[ 0.87758256 -0.         -0.47942554]
+ [ 0.          1.         -0.        ]
+ [ 0.47942554  0.          0.87758256]]
+quat wxyz = [ 0.96891242  0.         -0.24740396  0.        ]
+
+
+retargeting relationship:
+base_link -> pelvis
+RL_hip -> left_hip
+RL_calf -> left_knee
+RL_foot -> left_foot
+FL_hip -> left_shoulder
+FL_calf -> left_elbow
+FL_foot -> left_wrist
+
+RR and FR follows the same rule as RL and FL
+
+
+ 0 pelvis
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 1 left_hip
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 2 right_hip
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 3 spine1
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 4 left_knee
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 5 right_knee
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 6 spine2
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 7 left_ankle
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 8 right_ankle
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+ 9 spine3
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+10 left_foot
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+11 right_foot
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+12 neck
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+13 left_collar
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+14 right_collar
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+15 head
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+16 left_shoulder
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+17 right_shoulder
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+18 left_elbow
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+19 right_elbow
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+20 left_wrist
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+21 right_wrist
+R_global =
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+quat wxyz = [1. 0. 0. 0.]
+
+
+SMPL-X canonical:
+X = left
+Y = up
+Z = forward
+
+Go2：
+X = forward
+Y = left
+Z = up

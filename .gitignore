@@ -1,0 +1,38 @@
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+**/.pytest_cache/
+
+# IDE
+**/.vscode/
+**/.idea/
+
+# Training outputs
+**/logs/
+**/wandb/
+**/videos/
+**/recordings/
+**/artifacts/
+**/outputs/
+**/runs/
+
+# Models and generated motion data
+**/*.pt
+**/*.pth
+**/*.onnx
+**/*.pkl
+
+# Isaac Sim
+**/*.dmp
+**/.thumbs/
+_isaac_sim*
+_build/
+_repo/
+
+# OS
+.DS_Store
+
+# SMPL-X licensed body model files
+GMR/assets/body_models/smplx/*.pkl
+GMR/assets/body_models/smplx/*.npz
