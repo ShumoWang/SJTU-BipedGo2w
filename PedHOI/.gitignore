@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+runs/
+configs/*.local.json
+experiments/**/*.npz
+experiments/**/*.pkl
+experiments/**/*.mp4
+experiments/**/*.gif
+experiments/**/*.png
+experiments/**/*.xml
+experiments/**/*.json

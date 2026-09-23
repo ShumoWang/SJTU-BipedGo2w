@@ -1,0 +1,21 @@
+{
+  "sequence": "sub16_largebox_010",
+  "raw_omomo": "/home/robotennis2025/G2E-HOI/data/00_omomo_raw/official_omomo/data/test_diffusion_manip_seq_joints24.p",
+  "smplx_models": "/home/robotennis2025/GMR/assets/body_models",
+  "human_python": "/home/robotennis2025/anaconda3/envs/gmr/bin/python",
+  "robot_xml": "/home/robotennis2025/SJTU-BipedGo2w/GMR/assets/unitree_go2w/go2w.xml",
+  "source_mesh": "/home/robotennis2025/G2E-HOI/data/00_omomo_raw/official_omomo/data/captured_objects/largebox_cleaned_simplified.obj",
+  "omni_reference": "/home/robotennis2025/G2E-HOI/data/00_omomo_raw/omniretarget/OmniRetarget_Dataset_extracted/robot-object/sub16_largebox_010_original.npz",
+  "omni_mesh": "/home/robotennis2025/G2E-HOI/data/00_omomo_raw/omniretarget/OmniRetarget_Dataset/models/largebox/largebox.obj",
+  "holosoma_root": "/home/robotennis2025/G2E-HOI/third_party/holosoma",
+  "box_dimensions_m": [0.24, 0.32, 0.26],
+  "box_mass_kg": 0.5,
+  "object_rotation_limit_deg": 35,
+  "object_position_correction_limit_m": 0.06,
+  "clearance_scale": 0.43,
+  "source_fps": 30,
+  "output_fps": 120,
+  "time_scale": 4,
+  "laplacian_weight": 0.04,
+  "output": "runs/omni_ground_clamp"
+}
