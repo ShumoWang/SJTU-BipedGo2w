@@ -21,6 +21,12 @@ parser.add_argument("--num_envs", type=int, default=None, help="Number of enviro
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--motion_file", type=str, default=None, help="Path to the motion file.")
 parser.add_argument("--registry_name", type=str, default=None, help="W&B Registry motion artifact path.")
+parser.add_argument(
+    "--carry_cube",
+    action="store_true",
+    default=False,
+    help="Spawn a small cube and place it midway between the two front wheels.",
+)
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
@@ -50,6 +56,8 @@ import torch
 
 from rsl_rl.runners import OnPolicyRunner
 
+import isaaclab.sim as sim_utils
+from isaaclab.assets import RigidObjectCfg
 from isaaclab.envs import (
     DirectMARLEnv,
     DirectMARLEnvCfg,
@@ -87,6 +95,29 @@ def _find_motion_npz(download_dir: str) -> pathlib.Path:
     if not candidates:
         raise FileNotFoundError(f"No NPZ motion file was found in artifact directory: {root}")
     raise RuntimeError(f"Multiple NPZ files were found in artifact directory {root}: {candidates}")
+
+
+def _place_carry_cube_between_front_wheels(env, env_ids=None):
+    """Place the play-only cube at the midpoint of the current front-wheel positions."""
+    robot = env.scene["robot"]
+    carry_cube = env.scene["carry_cube"]
+    front_wheel_ids, _ = robot.find_bodies(["FL_wheel_link", "FR_wheel_link"], preserve_order=True)
+
+    if env_ids is None:
+        env_ids = torch.arange(env.num_envs, device=robot.device)
+    elif not isinstance(env_ids, torch.Tensor):
+        env_ids = torch.as_tensor(env_ids, device=robot.device, dtype=torch.long)
+    else:
+        env_ids = env_ids.to(device=robot.device, dtype=torch.long)
+    if env_ids.numel() == 0:
+        return
+
+    midpoint_w = robot.data.body_pos_w[env_ids][:, front_wheel_ids].mean(dim=1)
+    root_pose_w = torch.zeros((env_ids.numel(), 7), device=robot.device)
+    root_pose_w[:, :3] = midpoint_w
+    root_pose_w[:, 3] = 1.0  # identity quaternion in wxyz convention
+    carry_cube.write_root_pose_to_sim(root_pose_w, env_ids=env_ids)
+    carry_cube.write_root_velocity_to_sim(torch.zeros((env_ids.numel(), 6), device=robot.device), env_ids=env_ids)
 
 
 @hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
@@ -176,6 +207,25 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     elif not isinstance(env_cfg.commands.motion.motion_file, str):
         raise RuntimeError("A reference motion is required. Pass --registry_name <artifact> or --motion_file <file>.")
 
+    if args_cli.carry_cube:
+        env_cfg.scene.carry_cube = RigidObjectCfg(
+            prim_path="{ENV_REGEX_NS}/CarryCube",
+            spawn=sim_utils.CuboidCfg(
+                size=(0.27, 0.27, 0.27),
+                rigid_props=sim_utils.RigidBodyPropertiesCfg(),
+                mass_props=sim_utils.MassPropertiesCfg(mass=0.1),
+                collision_props=sim_utils.CollisionPropertiesCfg(),
+                physics_material=sim_utils.RigidBodyMaterialCfg(
+                    static_friction=2.0,
+                    dynamic_friction=2.0,
+                    restitution=0.0,
+                ),
+                visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.8, 0.1, 0.1)),
+            ),
+            # It is moved between the front wheels immediately after environment creation.
+            init_state=RigidObjectCfg.InitialStateCfg(pos=(0.0, 0.0, 1.5)),
+        )
+
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
 
     log_dir = os.path.dirname(resume_path)
@@ -183,6 +233,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     # create isaac environment
     env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+    base_env = env.unwrapped
+
+    if args_cli.carry_cube:
+        _place_carry_cube_between_front_wheels(base_env)
 
     # convert to single-agent instance if required by the RL algorithm
     if isinstance(env.unwrapped, DirectMARLEnv):
@@ -234,6 +288,9 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             # env stepping
             obs, _, dones, _ = env.step(actions)
             policy.reset(dones)
+            if args_cli.carry_cube:
+                reset_env_ids = torch.nonzero(dones, as_tuple=False).flatten()
+                _place_carry_cube_between_front_wheels(base_env, reset_env_ids)
         if args_cli.video:
             timestep += 1
             # Exit the play loop after recording one video

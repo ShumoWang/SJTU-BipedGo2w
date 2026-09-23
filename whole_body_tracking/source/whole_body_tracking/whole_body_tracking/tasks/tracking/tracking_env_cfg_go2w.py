@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import MISSING
 
 import isaaclab.sim as sim_utils
-from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from isaaclab.envs import ManagerBasedRLEnvCfg
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
@@ -71,6 +71,9 @@ class MySceneCfg(InteractiveSceneCfg):
     contact_forces = ContactSensorCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base_link/.*", history_length=3, track_air_time=True, force_threshold=10.0, debug_vis=True
     )
+    # Optional play-only payload. ``play.py --carry_cube`` fills this config.
+    # Keeping it disabled here prevents the unobserved object from affecting training.
+    carry_cube: RigidObjectCfg | None = None
 
 
 ##
