@@ -160,3 +160,35 @@ OPENBLAS_NUM_THREADS=1 python -m pedhoi.run --config configs/omomo_largebox_go2w
 ## 9. 下载最终重定位 NPZ
 
 已上传 [reference.npz](data/retargeted/omomo_largebox/reference.npz) 和 [episode.npz](data/retargeted/omomo_largebox/episode.npz)，包含 3073 帧机器人与箱体参考。格式、验收报告及 SHA-256 见 [数据说明](data/retargeted/omomo_largebox/README.md)。这两份文件对应本页报告的运动学结果，并非成功的物理回放或训练策略。
+
+## 10. 用 Isaac 回放与原对照视频一致的参考
+
+`whole_body_tracking/scripts/replay_npz_go2w.py` 现在自动识别 PedHOI `qpos` 格式，直接读取上传的 `reference.npz` 或 `episode.npz`，**无需经过 `pedhoi_to_npz.py` 转换**。原有 Isaac 格式的回放分支保留。此功能是运动学回放，不是物理执行或 RL 策略。
+
+在仓库根目录、已安装 Isaac Lab / Isaac Sim 的 Python 环境中运行：
+
+```bash
+python whole_body_tracking/scripts/replay_npz_go2w.py \
+  --motion_file PedHOI/data/retargeted/omomo_largebox/episode.npz \
+  --headless --video --video_length 0 \
+  --render_fps 15 --playback_speed 4 \
+  --video_dir PedHOI/runs/isaac_replay
+```
+
+`--video_length 0` 在 PedHOI 分支表示录完整条。上面命令按源视频相同的 97 个采样帧、15 FPS、机器人 4 倍速录制；`--playback_speed 1` 可查看正常 25.6 秒动作。去掉 `--headless` 可以打开窗口。新分支每次播放一遍后退出。
+
+关键修正：从文件读取 120 Hz；按 `joint_names` 映射 Isaac 关节顺序；根与箱体均使用 wxyz；显示 NPZ 中尺寸与姿态一致的箱体；默认使用 `GMR/assets/unitree_go2w/go2w.xml`（与原 MuJoCo 视频相同），不依赖另外下载的训练模型。显式启用 MJCF 导入插件，并指定 `/base_link/base_link` articulation 根。导入器的临时 mesh 副本保存在输出目录，避免修改模型资产。材质、地面和光照与 MuJoCo 不同。
+
+输出 `episode_isaac.mp4`、关键帧 PNG、`isaac_readback.npz` 与 `replay_report.json`。后者记录实际导入后的关节与基座状态。用主 MuJoCo 环境进一步检查所有同名 link 的正运动学：
+
+```bash
+python PedHOI/tests/check_isaac_replay.py \
+  --source PedHOI/data/retargeted/omomo_largebox/episode.npz \
+  --readback PedHOI/runs/isaac_replay/isaac_readback.npz \
+  --model GMR/assets/unitree_go2w/go2w.xml \
+  --output PedHOI/runs/isaac_replay/cross_engine_check.json
+```
+
+本机 Isaac Lab 2.3 环境已完成整段视频的 97 帧核验及全部 3073 个原始帧核验；刚体位置误差小于 1 微米，根/箱体姿态误差小于 0.001°。结果仅验证运动学一致性，不验证接触力与负载平衡。若要审计每个 120 Hz 原始帧，可不录视频，使用 `--audit_only`，再执行同一检查命令。
+
+旧转换链路的已知问题：`pedhoi_to_npz.py` 默认输入 30 Hz（本数据需要显式 120），其输出路径硬编码且忽略 `--output_file`；旧 replay 分支不绘制物体。本次直接回放绕过这些问题，没有改变训练数据转换器。

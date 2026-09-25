@@ -1,0 +1,10 @@
+{
+  "frames": 3073,
+  "first_frame": 0,
+  "last_frame": 3072,
+  "body_position_max_m": 5.048085399171876e-07,
+  "object_position_max_m": 1.1659169274480519e-07,
+  "root_rotation_max_deg": 1.644717499905036e-05,
+  "object_rotation_max_deg": 4.771711598704488e-06,
+  "joint_max_rad": 9.533773308589844e-07
+}

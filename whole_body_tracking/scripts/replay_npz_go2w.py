@@ -24,6 +24,11 @@ parser.add_argument(
     "--video_dir", type=str, default="videos/replay_npz_go2w", help="Directory in which to save replay videos."
 )
 
+parser.add_argument("--playback_speed", type=float, default=1.0, help="PedHOI playback speed; use 4 to match the comparison video.")
+parser.add_argument("--render_fps", type=int, default=30, help="PedHOI video/render sampling FPS.")
+parser.add_argument("--robot_xml", type=str, default=None, help="PedHOI MJCF override; default is the exact GMR retarget model.")
+parser.add_argument("--audit_only", action="store_true", help="PedHOI: verify all frames in Isaac without recording.")
+
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
@@ -35,6 +40,22 @@ if args_cli.video:
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
+
+# PedHOI references store qpos and named joints, rather than Isaac body arrays.
+# Dispatch before importing the training package, which requires separate assets.
+with np.load(args_cli.motion_file, allow_pickle=False) as source:
+    is_pedhoi = "qpos" in source and "object_pos" in source
+if is_pedhoi:
+    from pedhoi_replay import run_pedhoi
+    try:
+        run_pedhoi(args_cli, simulation_app)
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        raise
+    finally:
+        simulation_app.close(wait_for_replicator=False)
+    raise SystemExit(0)
 
 """Rest everything follows."""
 
