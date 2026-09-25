@@ -1,0 +1,11 @@
+{
+  "method": "object-frame interaction Laplacian + bilateral surface/gap + collision penalties + SE3 prior; independent hard validation required",
+  "full_rotation_prior": true,
+  "rotation_limit_deg": 35,
+  "rotation_error_before_carry_rms_deg": 60.92601555795449,
+  "rotation_error_after_carry_rms_deg": 33.49745524503275,
+  "rear_qpos_unchanged": true,
+  "root_unchanged": true,
+  "solver": "scipy least_squares; not the original SQP solver",
+  "dynamics_validated": false
+}

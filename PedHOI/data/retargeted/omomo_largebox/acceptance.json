@@ -1,0 +1,65 @@
+{
+  "status": "KINEMATIC_REFERENCE_PASS_DYNAMICS_UNVALIDATED",
+  "gates": {
+    "opposing_side_normals": true,
+    "finite": true,
+    "joint_limits": true,
+    "object_quaternion": true,
+    "nonpenetration": true,
+    "bilateral_contact_gap": true,
+    "ground_start_end": true,
+    "ground_not_penetrated": true,
+    "rolling": true,
+    "rotation_prior_improved": true
+  },
+  "kinematic_reference_ready": true,
+  "training_ready": false,
+  "payload_manipulation_validated": false,
+  "physics_test": {
+    "reference_sha256": "85b6cd28c6c6c60e930bccbd109eb76e44f3682cc10ccf676a563479c016d62e",
+    "contact_force_frame": "object",
+    "test": "full ground pick/clamp/carry/place torque-only stress test from t=0",
+    "payload_mass_kg": 0.5,
+    "completed": false,
+    "box_relative_error_max_m": 0.18004684477053826,
+    "measured_normal_force_mean_N": [
+      1.8914995702480797,
+      0.0
+    ],
+    "elapsed_s": 4.7540000000000004,
+    "planned_s": 25.6,
+    "failure": {
+      "time_s": 4.752,
+      "reason": "box_lost",
+      "root_tracking_error_m": 0.3842054260565419,
+      "box_relative_position_error_m": 0.18004684477053826,
+      "root_z_m": 0.47577217897212487
+    },
+    "front_box_contact_fraction": [
+      0.24579831932773108,
+      0.0
+    ],
+    "root_wrench": false,
+    "pose_resets": false,
+    "weld_or_mocap": false,
+    "controller": "existing balance controller with new arm feedforward and approximate payload gravity + 8 N inward force feedforward per front wheel; no object feedback"
+  },
+  "box_robot_penetration_max_m": 1.001487725129594e-05,
+  "self_penetration_max_m": 0.0,
+  "floor_penetration_max_m": 8.45284638117949e-09,
+  "joint_limit_violation_rad": 0.0,
+  "closed_contact_gap_max_m": 0.0017008943044314814,
+  "side_normal_cos_min": 0.9592145794871318,
+  "closed_narrow_phase_contact_fraction": [
+    1.0,
+    0.9979002624671915
+  ],
+  "object_ground_start_end_m": [
+    0.0,
+    0.0
+  ],
+  "no_slip_max_m_s": 0.0008133739903321899,
+  "object_angular_speed_max_rad_s": 2.658708714440105,
+  "object_linear_speed_max_m_s": 0.6218806870914254,
+  "reference_sha256": "85b6cd28c6c6c60e930bccbd109eb76e44f3682cc10ccf676a563479c016d62e"
+}

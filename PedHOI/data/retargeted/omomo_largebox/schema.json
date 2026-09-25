@@ -1,0 +1,14 @@
+{
+  "schema_version": "pedhoi-1",
+  "frame": "world Z-up, meters, seconds",
+  "robot_qpos": "base xyz, quaternion wxyz, 16 joints in joint_names order",
+  "robot_qvel": "MuJoCo nv22: linear world, angular body-local, joint velocities",
+  "object_quaternion": "wxyz",
+  "object_ang_vel": "world",
+  "legacy_root_rot": "xyzw; prefer robot_root_quat_wxyz",
+  "source_sequence": "sub16_largebox_010",
+  "kinematic_reference_ready": true,
+  "training_ready": false,
+  "payload_manipulation_validated": false,
+  "mass_is_assumed": true
+}

@@ -1,0 +1,23 @@
+{
+  "sequence": "sub16_largebox_010",
+  "method": "object-frame Delaunay interaction graph + uniform Laplacian",
+  "upstream": "amazon-far/holosoma interaction_mesh_retargeter.py and src/utils.py",
+  "omni_role": "object-frame/time audit, not G1 robot intermediary",
+  "omni_object_rotation_alignment_max_deg": 3.086104414917586e-05,
+  "omni_world_yaw_deg": -159.55422061827693,
+  "quaternion_layout": "wxyz on disk; scipy xyzw explicitly converted",
+  "source_box_half_size_m": [
+    0.16803995773731623,
+    0.17002980526796443,
+    0.1805353037330028
+  ],
+  "target_box_half_size_m": [
+    0.12,
+    0.16,
+    0.13
+  ],
+  "ground_height": "oriented shape support, not centre_z minus fixed half-height",
+  "contacts_inferred": true,
+  "contact_annotation": "heuristic episode-specific grip window; no ground-truth contact labels",
+  "full_original_rotation_is_prior": true
+}

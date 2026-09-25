@@ -1,0 +1,10 @@
+{
+  "reference.npz": "85b6cd28c6c6c60e930bccbd109eb76e44f3682cc10ccf676a563479c016d62e",
+  "episode.npz": "6a0142cea27184d0cd3fb23cbfc380781fc847b039b1054e456b16ea82f65f76",
+  "schema.json": "228e022ede38f9bfd14a61b10648498808cee534addd681139232b5baf80ca90",
+  "acceptance.json": "c85c4afe472bff7068c7682d121546f767c45a6fac2489fab9e539a49e396243",
+  "physics_report.json": "fe079eeaf88ff84bcc283a7e3617661e412163a150b71caa95089cab7d5a1096",
+  "retarget_report.json": "164177d12197614acd6e8fcc798ce80c4663df4f2412ec8da4c90584a7a2a600",
+  "object_prior_report.json": "93fcad6c71d8dcbe5d3514f6808d6a61b6eec433f06db280f6c4bced0f25e47e",
+  "config.snapshot.json": "7a72bd98b29739b070967ae4ab4f5b217559363dd996353aa1dc975f0bae9291"
+}

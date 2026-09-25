@@ -1,0 +1,29 @@
+{
+  "reference_sha256": "85b6cd28c6c6c60e930bccbd109eb76e44f3682cc10ccf676a563479c016d62e",
+  "contact_force_frame": "object",
+  "test": "full ground pick/clamp/carry/place torque-only stress test from t=0",
+  "payload_mass_kg": 0.5,
+  "completed": false,
+  "box_relative_error_max_m": 0.18004684477053826,
+  "measured_normal_force_mean_N": [
+    1.8914995702480797,
+    0.0
+  ],
+  "elapsed_s": 4.7540000000000004,
+  "planned_s": 25.6,
+  "failure": {
+    "time_s": 4.752,
+    "reason": "box_lost",
+    "root_tracking_error_m": 0.3842054260565419,
+    "box_relative_position_error_m": 0.18004684477053826,
+    "root_z_m": 0.47577217897212487
+  },
+  "front_box_contact_fraction": [
+    0.24579831932773108,
+    0.0
+  ],
+  "root_wrench": false,
+  "pose_resets": false,
+  "weld_or_mocap": false,
+  "controller": "existing balance controller with new arm feedforward and approximate payload gravity + 8 N inward force feedforward per front wheel; no object feedback"
+}

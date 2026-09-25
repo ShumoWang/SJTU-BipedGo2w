@@ -92,7 +92,7 @@ python -m pip install -r requirements.txt
 | `omni_mesh` | OmniRetarget `models/largebox/largebox.obj` |
 | `holosoma_root` | 本地官方实现位置，用于来源记录 |
 
-原始数据、SMPL-X 模型、第三方模型以及中间 NPZ/视频未提交。请按各来源的访问与许可要求自行准备；本次提交不授予这些资源的再分发许可。
+原始数据、SMPL-X 模型、第三方模型以及中间 NPZ/视频未提交；最终重定位 NPZ 已提供下载，见下方。请按各来源的访问与许可要求自行准备；本次提交不授予这些资源的再分发许可。
 
 **可移植性限制：** 配置保留本机绝对路径。初始化辅助代码与物理脚本还硬编码了 `/home/robotennis2025/SJTU-BipedGo2w/GMR/assets/unitree_go2w/go2w.xml`；入口会检查配置与辅助代码模型路径一致。异机部署需同时修改 `experiments/resmimic_rolling_v2/build_reference.py` 的 `MODEL`、`experiments/human_ground_clamp/physics_check.py` 的模型路径和配置。不能只改 JSON 就假定已经可运行。
 
@@ -156,3 +156,7 @@ OPENBLAS_NUM_THREADS=1 python -m pedhoi.run --config configs/omomo_largebox_go2w
 - `human_ground_clamp`：地面侧向夹持旧参考，当前物体修正的对照。
 - `human_biwheel_box` / `human_biwheel_clamp`：早期高位托举、夹持探索。
 - `resmimic_*` / `wheel_feasibility`：早期跨本体参考与轮足侧滑诊断。
+
+## 9. 下载最终重定位 NPZ
+
+已上传 [reference.npz](data/retargeted/omomo_largebox/reference.npz) 和 [episode.npz](data/retargeted/omomo_largebox/episode.npz)，包含 3073 帧机器人与箱体参考。格式、验收报告及 SHA-256 见 [数据说明](data/retargeted/omomo_largebox/README.md)。这两份文件对应本页报告的运动学结果，并非成功的物理回放或训练策略。
