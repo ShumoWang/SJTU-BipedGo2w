@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING
 
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor
-from isaaclab.utils.math import quat_error_magnitude
+from isaaclab.utils.math import quat_error_magnitude, matrix_from_quat
+from isaaclab.assets import RigidObject
 
-from whole_body_tracking.tasks.tracking.mdp.commands import MotionCommand
+from whole_body_tracking.tasks.tracking.hoi_mdp.commands import MotionCommand
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -80,3 +81,55 @@ def feet_contact_time(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, thresh
     last_contact_time = contact_sensor.data.last_contact_time[:, sensor_cfg.body_ids]
     reward = torch.sum((last_contact_time < threshold) * first_air, dim=-1)
     return reward
+
+
+def _box_corners_w(pos_w: torch.Tensor, quat_w: torch.Tensor) -> torch.Tensor:
+    # Return the corners of 0.24 x 0.32 x 0.26 box
+    corners_local = torch.tensor(
+        [
+            [-0.12, -0.16, -0.13],
+            [-0.12, -0.16,  0.13],
+            [-0.12,  0.16, -0.13],
+            [-0.12,  0.16,  0.13],
+            [ 0.12, -0.16, -0.13],
+            [ 0.12, -0.16,  0.13],
+            [ 0.12,  0.16, -0.13],
+            [ 0.12,  0.16,  0.13],
+        ],
+        device=pos_w.device,
+        dtype=pos_w.dtype,
+    )
+    rotation_w = matrix_from_quat(quat_w)
+    corners_w = torch.matmul(
+        corners_local.unsqueeze(0),
+        rotation_w.transpose(-1, -2),
+    ) + pos_w.unsqueeze(1)
+    return corners_w
+
+
+def object_point_cloud_distance(
+        env: ManagerBasedRLEnv,
+        command_name: str,
+        asset_name: str = "CarryCube"
+) -> torch.Tensor:
+    # Find the mean corner distances between simulated and reference box positions
+    box: RigidObject = env.scene[asset_name]
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    box_corners_w = _box_corners_w(
+        box.data.root_pos_w, box.data.root_quat_w
+    )
+    reference_corners_w = _box_corners_w(
+        command.object_pos_w, command.object_quat_w
+    )
+    return torch.linalg.vector_norm(
+    box_corners_w - reference_corners_w,
+    dim=-1,
+    ).mean(dim=-1)
+
+
+def point_cloud_distance_exp(
+        env: ManagerBasedRLEnv,
+        command_name: str,
+        asset_name: str = "CarryCube"
+) -> torch.Tensor:
+    return torch.exp(-object_point_cloud_distance(env, command_name, asset_name) * 10)

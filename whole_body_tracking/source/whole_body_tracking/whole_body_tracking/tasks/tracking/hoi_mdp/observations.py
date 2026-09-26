@@ -4,8 +4,11 @@ import torch
 from typing import TYPE_CHECKING
 
 from isaaclab.utils.math import matrix_from_quat, subtract_frame_transforms
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.assets import RigidObject
+import isaaclab.utils.math as math_utils
 
-from whole_body_tracking.tasks.tracking.mdp.commands import MotionCommand
+from whole_body_tracking.tasks.tracking.hoi_mdp.commands import MotionCommand
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
@@ -81,3 +84,17 @@ def motion_anchor_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor
     )
     mat = matrix_from_quat(ori)
     return mat[..., :2].reshape(mat.shape[0], -1)
+
+def cube_root_pos_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("CarryCube")) -> torch.Tensor:
+    """Asset root position in the environment frame."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return asset.data.root_pos_w - env.scene.env_origins
+
+def cube_root_quat_w(env: ManagerBasedEnv, make_quat_unique: bool = False, asset_cfg: SceneEntityCfg = SceneEntityCfg("CarryCube")) -> torch.Tensor:
+    """Asset root orientation (w, x, y, z) in the environment frame."""
+    asset: RigidObject = env.scene[asset_cfg.name]
+
+    quat = asset.data.root_quat_w
+    # make the quaternion real-part positive if configured
+    return math_utils.quat_unique(quat) if make_quat_unique else quat

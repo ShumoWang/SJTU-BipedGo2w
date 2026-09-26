@@ -11,8 +11,8 @@ if TYPE_CHECKING:
 from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
 
-from whole_body_tracking.tasks.tracking.mdp.commands import MotionCommand
-from whole_body_tracking.tasks.tracking.mdp.rewards import _get_body_indexes
+from whole_body_tracking.tasks.tracking.hoi_mdp.commands import MotionCommand
+from whole_body_tracking.tasks.tracking.hoi_mdp.rewards import _get_body_indexes, object_point_cloud_distance
 
 
 def bad_anchor_pos(env: ManagerBasedRLEnv, command_name: str, threshold: float) -> torch.Tensor:
@@ -56,3 +56,9 @@ def bad_motion_body_pos_z_only(
     body_indexes = _get_body_indexes(command, body_names)
     error = torch.abs(command.body_pos_relative_w[:, body_indexes, -1] - command.robot_body_pos_w[:, body_indexes, -1])
     return torch.any(error > threshold, dim=-1)
+
+
+def object_far(
+    env: ManagerBasedRLEnv, command_name: str, asset_name: str = "CarryCube", threshold: float = 1.0
+) -> torch.Tensor:
+    return object_point_cloud_distance(env, command_name, asset_name) > threshold

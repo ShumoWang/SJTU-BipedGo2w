@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from isaaclab.assets.rigid_object.rigid_object import RigidObject
 import numpy as np
 import os
 import torch
@@ -40,6 +41,8 @@ class MotionLoader:
         self._body_ang_vel_w = torch.tensor(data["body_ang_vel_w"], dtype=torch.float32, device=device)
         self._object_pos_w = torch.tensor(data["object_pos_w"], dtype=torch.float32, device=device)
         self._object_quat_w = torch.tensor(data["object_quat_w"], dtype=torch.float32, device=device)
+        self._object_lin_vel_w = torch.tensor(data["object_lin_vel_w"], dtype=torch.float32, device=device)
+        self._object_ang_vel_w = torch.tensor(data["object_ang_vel_w"], dtype=torch.float32, device=device)
         self._body_indexes = body_indexes
         self.time_step_total = self.joint_pos.shape[0]
 
@@ -61,11 +64,19 @@ class MotionLoader:
 
     @property
     def object_pos_w(self) -> torch.Tensor:
-        return self._object_pos_w[:, self._body_indexes]
+        return self._object_pos_w
+
+    @property
+    def object_lin_vel_w(self) -> torch.Tensor:
+        return self._object_lin_vel_w
+
+    @property
+    def object_ang_vel_w(self) -> torch.Tensor:
+        return self._object_ang_vel_w
 
     @property
     def object_quat_w(self) -> torch.Tensor:
-        return self._object_quat_w[:, self._body_indexes]
+        return self._object_quat_w
 
 
 class MotionCommand(CommandTerm):
@@ -75,6 +86,7 @@ class MotionCommand(CommandTerm):
         super().__init__(cfg, env)
 
         self.robot: Articulation = env.scene[cfg.asset_name]
+        self.box: RigidObject = env.scene[cfg.object_name]
         self.robot_anchor_body_index = self.robot.body_names.index(self.cfg.anchor_body_name)
         self.motion_anchor_body_index = self.cfg.body_names.index(self.cfg.anchor_body_name)
         self.body_indexes = torch.tensor(
@@ -136,12 +148,21 @@ class MotionCommand(CommandTerm):
         return self.motion.body_ang_vel_w[self.time_steps]
 
     @property
+    def object_lin_vel_w(self) -> torch.Tensor:
+        return self.motion.object_lin_vel_w[self.time_steps]
+
+    @property
+    def object_ang_vel_w(self) -> torch.Tensor:
+        return self.motion.object_ang_vel_w[self.time_steps]
+
+    @property
     def object_pos_w(self) -> torch.Tensor:
-        return self.motion.object_pos_w[self.time_steps] + self._env.scene.env_origins[:, None, :]
+        return self.motion.object_pos_w[self.time_steps] + self._env.scene.env_origins
 
     @property
     def object_quat_w(self) -> torch.Tensor:
         return self.motion.object_quat_w[self.time_steps]
+    
 
     @property
     def anchor_pos_w(self) -> torch.Tensor:
@@ -267,6 +288,10 @@ class MotionCommand(CommandTerm):
         root_ori = self.body_quat_w[:, 0].clone()
         root_lin_vel = self.body_lin_vel_w[:, 0].clone()
         root_ang_vel = self.body_ang_vel_w[:, 0].clone()
+        object_ref_pos = self.object_pos_w.clone()
+        object_ref_quat = self.object_quat_w.clone()
+        object_ref_lin_vel = self.object_lin_vel_w.clone()
+        object_ref_ang_vel = self.object_ang_vel_w.clone()
 
         range_list = [self.cfg.pose_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
         ranges = torch.tensor(range_list, device=self.device)
@@ -293,6 +318,11 @@ class MotionCommand(CommandTerm):
             torch.cat([root_pos[env_ids], root_ori[env_ids], root_lin_vel[env_ids], root_ang_vel[env_ids]], dim=-1),
             env_ids=env_ids,
         )
+        self.box.write_root_state_to_sim(
+            torch.cat([object_ref_pos[env_ids], object_ref_quat[env_ids], object_ref_lin_vel[env_ids], object_ref_ang_vel[env_ids]], dim=-1),
+                        env_ids=env_ids,
+        )
+    
 
     def _update_command(self):
         self.time_steps += 1
@@ -373,6 +403,7 @@ class MotionCommandCfg(CommandTermCfg):
     class_type: type = MotionCommand
 
     asset_name: str = MISSING
+    object_name: str = MISSING
 
     motion_file: str = MISSING
     anchor_body_name: str = MISSING

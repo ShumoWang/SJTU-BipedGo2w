@@ -72,7 +72,7 @@ class MySceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/base_link/.*", history_length=3, track_air_time=True, force_threshold=10.0, debug_vis=True
     )
 
-    carry_cube: RigidObjectCfg = RigidObjectCfg(
+    CarryCube: RigidObjectCfg = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/CarryCube",
             spawn=sim_utils.CuboidCfg(
                 size=(0.24, 0.32, 0.26),
@@ -90,21 +90,21 @@ class MySceneCfg(InteractiveSceneCfg):
         )
     left_box_contact = ContactSensorCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base_link/FL_wheel_link",
-        filter_prim_paths_expr="{ENV_REGEX_NS}/CarryCube",
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/CarryCube"],
         history_length=3,
         track_air_time=True,
         force_threshold=1.0,
     )
     right_box_contact = ContactSensorCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base_link/FR_wheel_link",
-        filter_prim_paths_expr="{ENV_REGEX_NS}/CarryCube",
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/CarryCube"],
         history_length=3,
         track_air_time=True,
         force_threshold=1.0,
     )
     ground_box_contact = ContactSensorCfg(
         prim_path="/World/ground",
-        filter_prim_paths_expr="{ENV_REGEX_NS}/CarryCube",
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/CarryCube"],
         history_length=3,
         track_air_time=True,
         force_threshold=1.0,
@@ -122,6 +122,7 @@ class CommandsCfg:
 
     motion = mdp.MotionCommandCfg(
         asset_name="robot",
+        object_name="CarryCube",
         resampling_time_range=(1.0e9, 1.0e9),
         debug_vis=True,
         pose_range={
@@ -162,6 +163,8 @@ class ObservationsCfg:
         )
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.5, n_max=0.5))
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+        cube_pos_w = ObsTerm(func=mdp.cube_root_pos_w, noise=Unoise(n_min=-0.05, n_max=0.05))
+        cube_quat_w = ObsTerm(func=mdp.cube_root_quat_w, noise=Unoise(n_min=-0.05, n_max=0.05))
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5))
         actions = ObsTerm(func=mdp.last_action)
@@ -179,6 +182,8 @@ class ObservationsCfg:
         body_ori = ObsTerm(func=mdp.robot_body_ori_b, params={"command_name": "motion"})
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
+        cube_pos_w = ObsTerm(func=mdp.cube_root_pos_w)
+        cube_quat_w = ObsTerm(func=mdp.cube_root_quat_w)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         actions = ObsTerm(func=mdp.last_action)
@@ -290,6 +295,11 @@ class RewardsCfg:
             "threshold": 1.0,
         },
     )
+    tracking_object_point_cloud = RewTerm(
+        func=mdp.point_cloud_distance_exp,
+        weight=1.0,
+        params={"command_name": "motion", "asset_name": "CarryCube"},
+    )
 
 
 @configclass
@@ -318,6 +328,10 @@ class TerminationsCfg:
             ],
         },
     )
+    object_far = DoneTerm(
+        func=mdp.object_far,
+        params={"command_name": "motion", "asset_name": "CarryCube", "threshold": 0.3},
+    )
 
 
 @configclass
@@ -333,7 +347,7 @@ class CurriculumCfg:
 
 
 @configclass
-class TrackingEnvCfg(ManagerBasedRLEnvCfg):
+class TrackingEnvCfgHOI(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings
