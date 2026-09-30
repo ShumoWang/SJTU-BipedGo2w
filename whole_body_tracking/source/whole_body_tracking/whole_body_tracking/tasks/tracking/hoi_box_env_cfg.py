@@ -102,13 +102,6 @@ class MySceneCfg(InteractiveSceneCfg):
         track_air_time=True,
         force_threshold=1.0,
     )
-    ground_box_contact = ContactSensorCfg(
-        prim_path="/World/ground",
-        filter_prim_paths_expr=["{ENV_REGEX_NS}/CarryCube"],
-        history_length=3,
-        track_air_time=True,
-        force_threshold=1.0,
-    )
 
 
 ##
@@ -214,7 +207,7 @@ class EventCfg:
         func=mdp.randomize_joint_default_pos,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_(hip|thigh|calf)_joint"]),
             "pos_distribution_params": (-0.01, 0.01),
             "operation": "add",
         },
@@ -242,6 +235,11 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
+    motion_anchor_height = RewTerm(
+        func=mdp.motion_anchor_height_error_exp,
+        weight=1.0,
+        params={"command_name": "motion", "std": 0.1},
+    )
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
         weight=0.5,
@@ -309,7 +307,7 @@ class TerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.25},
+        params={"command_name": "motion", "threshold": 0.12},
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,

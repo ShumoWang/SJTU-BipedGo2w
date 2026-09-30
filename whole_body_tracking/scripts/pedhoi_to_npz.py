@@ -417,7 +417,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene, joi
 
             import wandb
 
-            run = wandb.init(project="pkl_to_npz", name=COLLECTION)
+            run = wandb.init(project="pedhoi_to_npz", name=COLLECTION)
             print(f"[INFO]: Logging motion to wandb: {COLLECTION}")
             REGISTRY = "motions"
             logged_artifact = run.log_artifact(artifact_or_path=f"/home/shumowang/Desktop/mimic_ws/whole_body_tracking/motions/{COLLECTION}.npz", name=COLLECTION, type=REGISTRY)

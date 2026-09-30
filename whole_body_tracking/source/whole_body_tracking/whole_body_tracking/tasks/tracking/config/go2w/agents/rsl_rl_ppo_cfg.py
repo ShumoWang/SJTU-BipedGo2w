@@ -31,6 +31,19 @@ class Go2WFlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     )
 
 
+@configclass
+class Go2WHOIResidualPPORunnerCfg(Go2WFlatPPORunnerCfg):
+    """PPO settings for residual HOI training on top of a frozen motion policy."""
+
+    experiment_name = "go2w_hoi_residual"
+    policy = RslRlPpoActorCriticCfg(
+        init_noise_std=0.1,
+        actor_hidden_dims=[512, 256, 128],
+        critic_hidden_dims=[512, 256, 128],
+        activation="elu",
+    )
+
+
 LOW_FREQ_SCALE = 0.5
 
 

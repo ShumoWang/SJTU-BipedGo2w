@@ -22,6 +22,12 @@ parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--motion_file", type=str, default=None, help="Path to the motion file.")
 parser.add_argument("--registry_name", type=str, default=None, help="W&B Registry motion artifact path.")
 parser.add_argument(
+    "--base_policy_path",
+    type=str,
+    default=None,
+    help="Frozen TorchScript base policy to combine with a residual HOI policy.",
+)
+parser.add_argument(
     "--carry_cube",
     action="store_true",
     default=False,
@@ -43,6 +49,10 @@ sys.argv = [sys.argv[0]] + hydra_args
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
+
+from isaacsim.core.utils.extensions import enable_extension
+
+enable_extension("isaacsim.asset.importer.mjcf")
 
 """Rest everything follows."""
 
@@ -77,7 +87,11 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 
 # Import extensions to set up environment tasks
 import whole_body_tracking.tasks  # noqa: F401
-from whole_body_tracking.utils.exporter import attach_onnx_metadata, export_motion_policy_as_onnx
+from whole_body_tracking.utils.exporter import (
+    attach_onnx_metadata,
+    export_combined_residual_policy_as_jit,
+    export_motion_policy_as_onnx,
+)
 
 installed_version = metadata.version("rsl-rl-lib")
 
@@ -118,6 +132,22 @@ def _place_carry_cube_between_front_wheels(env, env_ids=None):
     root_pose_w[:, 3] = 1.0  # identity quaternion in wxyz convention
     carry_cube.write_root_pose_to_sim(root_pose_w, env_ids=env_ids)
     carry_cube.write_root_velocity_to_sim(torch.zeros((env_ids.numel(), 6), device=robot.device), env_ids=env_ids)
+
+
+def _get_base_policy_observations(base_policy, observations, num_actions: int) -> torch.Tensor:
+    """Remove HOI-only cube observations before querying a flat-tracking policy."""
+    policy_obs = observations["policy"]
+    base_observation_dim = next(
+        parameter.shape[1] for name, parameter in base_policy.named_parameters() if name.endswith("mlp.0.weight")
+    )
+    object_observation_dim = 7
+    if policy_obs.shape[-1] != base_observation_dim + object_observation_dim:
+        raise ValueError(
+            "Residual HOI policy observation size does not match the base policy: "
+            f"expected {base_observation_dim + object_observation_dim}, got {policy_obs.shape[-1]}."
+        )
+    object_start = base_observation_dim - num_actions * 3
+    return torch.cat((policy_obs[:, :object_start], policy_obs[:, object_start + object_observation_dim :]), dim=-1)
 
 
 @hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
@@ -207,6 +237,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     elif not isinstance(env_cfg.commands.motion.motion_file, str):
         raise RuntimeError("A reference motion is required. Pass --registry_name <artifact> or --motion_file <file>.")
 
+    # Training samples random reference frames for coverage. Playback must begin
+    # at the first frame so the robot and interaction object replay the sequence.
+    env_cfg.commands.motion.fixed_start_step = 0
+
     if args_cli.carry_cube:
         env_cfg.scene.carry_cube = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/CarryCube",
@@ -264,17 +298,37 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     # obtain the trained policy for inference
     policy = runner.get_inference_policy(device=env.unwrapped.device)
+    base_policy = None
+    if args_cli.base_policy_path is not None:
+        # Keep the TorchScript normalizer and its input on CPU. In Kit, scripted
+        # module buffers do not reliably migrate with ``.to(cuda)``.
+        base_policy = torch.jit.load(args_cli.base_policy_path, map_location="cpu").eval()
+        print(f"[INFO]: Loading frozen base policy from: {args_cli.base_policy_path}")
 
     # Export the deterministic policy and its reference motion for deployment.
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
-    runner.export_policy_to_jit(path=export_model_dir, filename="policy.pt")
+    if base_policy is None:
+        runner.export_policy_to_jit(path=export_model_dir, filename="policy.pt")
+    else:
+        runner.export_policy_to_jit(path=export_model_dir, filename="residual_policy.pt")
+        export_combined_residual_policy_as_jit(
+            base_policy,
+            runner.alg.get_policy(),
+            path=export_model_dir,
+            num_actions=env.num_actions,
+        )
     export_motion_policy_as_onnx(
         env.unwrapped,
         runner.alg.get_policy(),
         path=export_model_dir,
-        filename="policy.onnx",
+        filename="residual_policy.onnx" if base_policy is not None else "policy.onnx",
     )
-    attach_onnx_metadata(env.unwrapped, run_path if run_path is not None else "none", export_model_dir)
+    attach_onnx_metadata(
+        env.unwrapped,
+        run_path if run_path is not None else "none",
+        export_model_dir,
+        filename="residual_policy.onnx" if base_policy is not None else "policy.onnx",
+    )
 
     # reset environment
     obs = env.get_observations()
@@ -285,6 +339,9 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         with torch.inference_mode():
             # agent stepping
             actions = policy(obs)
+            if base_policy is not None:
+                base_obs = _get_base_policy_observations(base_policy, obs, env.num_actions).cpu()
+                actions += base_policy(base_obs).to(actions.device)
             # env stepping
             obs, _, dones, _ = env.step(actions)
             policy.reset(dones)

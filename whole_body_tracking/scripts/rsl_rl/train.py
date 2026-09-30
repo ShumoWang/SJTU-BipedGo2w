@@ -25,6 +25,12 @@ parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
 parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
 parser.add_argument("--registry_name", type=str, required=True, help="The name of the wand registry.")
+parser.add_argument(
+    "--base_policy_path",
+    type=str,
+    default=None,
+    help="TorchScript flat-tracking policy to freeze and augment with residual actions.",
+)
 
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
@@ -74,6 +80,7 @@ from isaaclab_rl.rsl_rl import (
 )
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
+from whole_body_tracking.utils.my_on_policy_runner import ResidualMotionOnPolicyRunner
 
 # Import extensions to set up environment tasks
 import whole_body_tracking.tasks  # noqa: F401
@@ -171,7 +178,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     # create runner from rsl-rl
-    runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
+    runner_cls = ResidualMotionOnPolicyRunner if args_cli.base_policy_path else OnPolicyRunner
+    runner_kwargs = {}
+    if args_cli.base_policy_path:
+        runner_kwargs["base_policy_path"] = args_cli.base_policy_path
+    runner = runner_cls(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device, **runner_kwargs)
     # write git state to logs
     runner.add_git_repo_to_log(__file__)
     # save resume path before creating a new log_dir

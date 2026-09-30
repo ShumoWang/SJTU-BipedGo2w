@@ -13,6 +13,50 @@ from isaaclab.envs import ManagerBasedRLEnv
 from whole_body_tracking.tasks.tracking.mdp import MotionCommand
 
 
+class _CombinedResidualPolicy(torch.nn.Module):
+    """Produce final actions from full HOI observations in one TorchScript module."""
+
+    def __init__(self, base_policy, residual_policy, base_observation_dim: int, num_actions: int):
+        super().__init__()
+        self.base_policy = base_policy
+        self.residual_policy = residual_policy
+        self.base_observation_dim = base_observation_dim
+        self.object_start = base_observation_dim - num_actions * 3
+
+    def forward(self, policy_observations: torch.Tensor) -> torch.Tensor:
+        base_observations = torch.cat(
+            (
+                policy_observations[:, : self.object_start],
+                policy_observations[:, self.object_start + 7 :],
+            ),
+            dim=-1,
+        )
+        return self.base_policy(base_observations) + self.residual_policy(policy_observations)
+
+
+def export_combined_residual_policy_as_jit(
+    base_policy,
+    residual_policy: object,
+    path: str,
+    num_actions: int,
+    filename: str = "policy.pt",
+) -> None:
+    """Export a standalone HOI policy containing both base and residual action models."""
+    base_observation_dim = next(
+        parameter.shape[1]
+        for name, parameter in base_policy.named_parameters()
+        if name.endswith("mlp.0.weight")
+    )
+    residual_policy_jit = residual_policy.as_jit().to("cpu")
+    combined_policy = _CombinedResidualPolicy(
+        base_policy.to("cpu"), residual_policy_jit, base_observation_dim, num_actions
+    ).eval()
+
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+    torch.jit.script(combined_policy).save(os.path.join(path, filename))
+
+
 def export_motion_policy_as_onnx(
     env: ManagerBasedRLEnv,
     policy: object,
