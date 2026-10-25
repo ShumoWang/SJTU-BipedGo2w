@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from whole_body_tracking.tasks.tracking.hoi_mdp.rewards import object_point_cloud_distance
 import torch
 from typing import TYPE_CHECKING
 
@@ -56,3 +57,4 @@ def bad_motion_body_pos_z_only(
     body_indexes = _get_body_indexes(command, body_names)
     error = torch.abs(command.body_pos_relative_w[:, body_indexes, -1] - command.robot_body_pos_w[:, body_indexes, -1])
     return torch.any(error > threshold, dim=-1)
+

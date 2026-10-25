@@ -180,6 +180,42 @@ class MotionCommand(CommandTerm):
     def anchor_ang_vel_w(self) -> torch.Tensor:
         return self.motion.body_ang_vel_w[self.time_steps, self.motion_anchor_body_index]
 
+    def future_anchor_pos_w(self, time) -> torch.Tensor:
+        offset = round(time * float(self.motion.fps))
+        raw_index = self.time_steps + offset
+        index = raw_index.clamp(max=self.motion.time_step_total - 1)
+        return self.motion.body_pos_w[index, self.motion_anchor_body_index] + self._env.scene.env_origins
+
+    def future_anchor_quat_w(self, time) -> torch.Tensor:
+        offset = round(time * float(self.motion.fps))
+        raw_index = self.time_steps + offset
+        index = raw_index.clamp(max=self.motion.time_step_total - 1)
+        return self.motion.body_quat_w[index, self.motion_anchor_body_index]
+
+    def future_joint_pos(self, time) -> torch.Tensor:
+        offset = round(time * float(self.motion.fps))
+        raw_index = self.time_steps + offset
+        index = raw_index.clamp(max=self.motion.time_step_total - 1)
+        return self.motion.joint_pos[index]
+
+    def future_joint_vel(self, time) -> torch.Tensor:
+        offset = round(time * float(self.motion.fps))
+        raw_index = self.time_steps + offset
+        index = raw_index.clamp(max=self.motion.time_step_total - 1)
+        return self.motion.joint_vel[index]
+
+    def future_object_pos_w(self, time) -> torch.Tensor:
+        offset = round(time * float(self.motion.fps))
+        raw_index = self.time_steps + offset
+        index = raw_index.clamp(max=self.motion.time_step_total - 1)
+        return self.motion.object_pos_w[index] + self._env.scene.env_origins
+
+    def future_object_quat_w(self, time) -> torch.Tensor:
+        offset = round(time * float(self.motion.fps))
+        raw_index = self.time_steps + offset
+        index = raw_index.clamp(max=self.motion.time_step_total - 1)
+        return self.motion.object_quat_w[index]
+    
     @property
     def robot_joint_pos(self) -> torch.Tensor:
         return self.robot.data.joint_pos

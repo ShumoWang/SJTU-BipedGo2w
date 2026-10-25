@@ -52,7 +52,7 @@ class MotionOnPolicyRunner(OnPolicyRunner):
 class ResidualMotionOnPolicyRunner(MotionOnPolicyRunner):
     """Train residual actions on top of a frozen flat-tracking policy."""
 
-    object_observation_dim = 7
+    hoi_extra_observation_dim = 207
 
     def __init__(
         self,
@@ -79,19 +79,15 @@ class ResidualMotionOnPolicyRunner(MotionOnPolicyRunner):
 
     def _base_actions(self, obs: torch.Tensor) -> torch.Tensor:
         policy_obs = obs["policy"]
-        expected_hoi_dim = self.base_observation_dim + self.object_observation_dim
+        expected_hoi_dim = self.base_observation_dim + self.hoi_extra_observation_dim
         if policy_obs.shape[-1] != expected_hoi_dim:
             raise ValueError(
                 "Residual HOI policy observation size does not match the base policy: "
                 f"expected {expected_hoi_dim} (= base {self.base_observation_dim} + "
-                f"object {self.object_observation_dim}), got {policy_obs.shape[-1]}."
+                f"HOI extras {self.hoi_extra_observation_dim}), got {policy_obs.shape[-1]}."
             )
 
-        proprioception_dim = self.env.num_actions * 3
-        object_start = self.base_observation_dim - proprioception_dim
-        base_obs = torch.cat(
-            (policy_obs[:, :object_start], policy_obs[:, object_start + self.object_observation_dim :]), dim=-1
-        )
+        base_obs = policy_obs[:, :self.base_observation_dim]
         with torch.inference_mode():
             return self.base_policy(base_obs)
 

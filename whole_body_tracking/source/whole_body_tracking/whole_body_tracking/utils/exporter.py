@@ -21,16 +21,9 @@ class _CombinedResidualPolicy(torch.nn.Module):
         self.base_policy = base_policy
         self.residual_policy = residual_policy
         self.base_observation_dim = base_observation_dim
-        self.object_start = base_observation_dim - num_actions * 3
 
     def forward(self, policy_observations: torch.Tensor) -> torch.Tensor:
-        base_observations = torch.cat(
-            (
-                policy_observations[:, : self.object_start],
-                policy_observations[:, self.object_start + 7 :],
-            ),
-            dim=-1,
-        )
+        base_observations = policy_observations[:, : self.base_observation_dim]
         return self.base_policy(base_observations) + self.residual_policy(policy_observations)
 
 

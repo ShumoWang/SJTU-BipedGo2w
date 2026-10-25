@@ -78,7 +78,7 @@ class MySceneCfg(InteractiveSceneCfg):
                 size=(0.24, 0.32, 0.26),
                 activate_contact_sensors=True,
                 rigid_props=sim_utils.RigidBodyPropertiesCfg(),
-                mass_props=sim_utils.MassPropertiesCfg(mass=0.1),
+                mass_props=sim_utils.MassPropertiesCfg(mass=2.0),
                 collision_props=sim_utils.CollisionPropertiesCfg(),
                 physics_material=sim_utils.RigidBodyMaterialCfg(
                     static_friction=2.0,
@@ -156,11 +156,29 @@ class ObservationsCfg:
         )
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.5, n_max=0.5))
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        cube_pos_w = ObsTerm(func=mdp.cube_root_pos_w, noise=Unoise(n_min=-0.05, n_max=0.05))
-        cube_quat_w = ObsTerm(func=mdp.cube_root_quat_w, noise=Unoise(n_min=-0.05, n_max=0.05))
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5))
         actions = ObsTerm(func=mdp.last_action)
+        cube_pos_b = ObsTerm(func=mdp.cube_root_pos_b, noise=Unoise(n_min=-0.03, n_max=0.03))
+        cube_quat_b = ObsTerm(func=mdp.cube_root_quat_b, noise=Unoise(n_min=-0.03, n_max=0.03))
+        future_motion_anchor_pos_b = ObsTerm(
+            func=mdp.future_motion_anchor_pos_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]})
+        future_motion_anchor_ori_b = ObsTerm(
+            func=mdp.future_motion_anchor_ori_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_object_pos_b = ObsTerm(
+            func=mdp.future_object_pos_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_object_ori_b = ObsTerm(
+            func=mdp.future_object_ori_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_joint_pos_rel = ObsTerm(
+            func=mdp.future_joint_pos_rel, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_joint_vel_rel = ObsTerm(
+            func=mdp.future_joint_vel_rel, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+
 
         def __post_init__(self):
             self.enable_corruption = True
@@ -175,11 +193,28 @@ class ObservationsCfg:
         body_ori = ObsTerm(func=mdp.robot_body_ori_b, params={"command_name": "motion"})
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
-        cube_pos_w = ObsTerm(func=mdp.cube_root_pos_w)
-        cube_quat_w = ObsTerm(func=mdp.cube_root_quat_w)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         actions = ObsTerm(func=mdp.last_action)
+        cube_pos_b = ObsTerm(func=mdp.cube_root_pos_b)
+        cube_quat_b = ObsTerm(func=mdp.cube_root_quat_b)
+        future_motion_anchor_pos_b = ObsTerm(
+            func=mdp.future_motion_anchor_pos_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]})
+        future_motion_anchor_ori_b = ObsTerm(
+            func=mdp.future_motion_anchor_ori_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_object_pos_b = ObsTerm(
+            func=mdp.future_object_pos_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_object_ori_b = ObsTerm(
+            func=mdp.future_object_ori_b, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_joint_pos_rel = ObsTerm(
+            func=mdp.future_joint_pos_rel, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
+        future_joint_vel_rel = ObsTerm(
+            func=mdp.future_joint_vel_rel, params={"command_name": "motion", "times": [0.1, 0.2, 0.4, 0.6]}
+        )
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
@@ -329,6 +364,15 @@ class TerminationsCfg:
     object_far = DoneTerm(
         func=mdp.object_far,
         params={"command_name": "motion", "asset_name": "CarryCube", "threshold": 0.3},
+    )
+    task_success = DoneTerm(
+        func=mdp.task_success,
+        time_out=True,
+        params={
+            "command_name": "motion",
+            "asset_name": "CarryCube",
+            "object_threshold": 0.05,
+        },
     )
 
 

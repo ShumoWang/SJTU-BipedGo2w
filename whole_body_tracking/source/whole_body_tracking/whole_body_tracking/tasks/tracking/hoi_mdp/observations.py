@@ -85,16 +85,125 @@ def motion_anchor_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor
     mat = matrix_from_quat(ori)
     return mat[..., :2].reshape(mat.shape[0], -1)
 
-def cube_root_pos_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("CarryCube")) -> torch.Tensor:
-    """Asset root position in the environment frame."""
-    # extract the used quantities (to enable type-hinting)
-    asset: RigidObject = env.scene[asset_cfg.name]
-    return asset.data.root_pos_w - env.scene.env_origins
+def cube_root_pos_b(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("CarryCube")) -> torch.Tensor:
+    """Cube root position expressed in the robot root frame."""
+    robot: RigidObject = env.scene["robot"]
+    cube: RigidObject = env.scene[asset_cfg.name]
+    position_b, _ = subtract_frame_transforms(
+        robot.data.root_pos_w,
+        robot.data.root_quat_w,
+        cube.data.root_pos_w,
+        cube.data.root_quat_w,
+    )
+    return position_b
 
-def cube_root_quat_w(env: ManagerBasedEnv, make_quat_unique: bool = False, asset_cfg: SceneEntityCfg = SceneEntityCfg("CarryCube")) -> torch.Tensor:
-    """Asset root orientation (w, x, y, z) in the environment frame."""
-    asset: RigidObject = env.scene[asset_cfg.name]
 
-    quat = asset.data.root_quat_w
-    # make the quaternion real-part positive if configured
-    return math_utils.quat_unique(quat) if make_quat_unique else quat
+def cube_root_quat_b(
+    env: ManagerBasedEnv,
+    make_quat_unique: bool = True,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("CarryCube"),
+) -> torch.Tensor:
+    """Cube root orientation expressed in the robot root frame."""
+    robot: RigidObject = env.scene["robot"]
+    cube: RigidObject = env.scene[asset_cfg.name]
+    _, quaternion_b = subtract_frame_transforms(
+        robot.data.root_pos_w,
+        robot.data.root_quat_w,
+        cube.data.root_pos_w,
+        cube.data.root_quat_w,
+    )
+    return math_utils.quat_unique(quaternion_b) if make_quat_unique else quaternion_b
+
+def future_motion_anchor_pos_b(env: ManagerBasedEnv, command_name: str, times: list) -> torch.Tensor:
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    future_pos_list = []
+
+    for time in times:
+        pos, _ = subtract_frame_transforms(
+            command.robot_anchor_pos_w,
+            command.robot_anchor_quat_w,
+            command.future_anchor_pos_w(time),
+            command.future_anchor_quat_w(time),
+        )
+        future_pos_list.append(pos)
+
+    return torch.cat(future_pos_list, dim=-1).view(env.num_envs, -1)
+
+def future_motion_anchor_ori_b(env: ManagerBasedEnv, command_name: str, times: list) -> torch.Tensor:
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    future_ori_list = []
+
+    for time in times:
+        _, ori = subtract_frame_transforms(
+            command.robot_anchor_pos_w,
+            command.robot_anchor_quat_w,
+            command.future_anchor_pos_w(time),
+            command.future_anchor_quat_w(time),
+        )
+        mat = matrix_from_quat(ori)
+        ori_6d = mat[..., :2].reshape(mat.shape[0], -1)
+        future_ori_list.append(ori_6d)
+
+    return torch.cat(future_ori_list, dim=-1)
+
+def future_object_pos_b(env: ManagerBasedEnv, command_name: str, times: list) -> torch.Tensor:
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    robot: RigidObject = env.scene["robot"]
+
+    future_pos_list = []
+
+    for time in times:
+        pos, _ = subtract_frame_transforms(
+            robot.data.root_pos_w,
+            robot.data.root_quat_w,
+            command.future_object_pos_w(time),
+            command.future_object_quat_w(time),
+        )
+        future_pos_list.append(pos)
+
+    return torch.cat(future_pos_list, dim=-1).view(env.num_envs, -1)
+
+def future_object_ori_b(env: ManagerBasedEnv, command_name: str, times: list) -> torch.Tensor:
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    robot: RigidObject = env.scene["robot"]
+
+    future_ori_list = []
+
+    for time in times:
+        _, ori = subtract_frame_transforms(
+            robot.data.root_pos_w,
+            robot.data.root_quat_w,
+            command.future_object_pos_w(time),
+            command.future_object_quat_w(time),
+        )
+        mat = matrix_from_quat(ori)
+        ori_6d = mat[..., :2].reshape(mat.shape[0], -1)
+        future_ori_list.append(ori_6d)
+
+    return torch.cat(future_ori_list, dim=-1)
+
+def future_joint_pos_rel(env: ManagerBasedEnv, command_name: str, times: list) -> torch.Tensor:
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    robot: RigidObject = env.scene["robot"]
+
+    future_pos_list = []
+
+    for time in times:
+        pos = command.future_joint_pos(time)
+        pos = pos - robot.data.joint_pos
+        future_pos_list.append(pos)
+
+    return torch.cat(future_pos_list, dim=-1).view(env.num_envs, -1)
+
+def future_joint_vel_rel(env: ManagerBasedEnv, command_name: str, times: list) -> torch.Tensor:
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    robot: RigidObject = env.scene["robot"]
+
+    future_vel_list = []
+
+    for time in times:
+        vel = command.future_joint_vel(time)
+        vel = vel - robot.data.joint_vel
+        future_vel_list.append(vel)
+
+    return torch.cat(future_vel_list, dim=-1).view(env.num_envs, -1)

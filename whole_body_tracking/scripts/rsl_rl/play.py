@@ -135,19 +135,19 @@ def _place_carry_cube_between_front_wheels(env, env_ids=None):
 
 
 def _get_base_policy_observations(base_policy, observations, num_actions: int) -> torch.Tensor:
-    """Remove HOI-only cube observations before querying a flat-tracking policy."""
+    """Extract the flat-policy prefix from the full HOI observation."""
     policy_obs = observations["policy"]
     base_observation_dim = next(
         parameter.shape[1] for name, parameter in base_policy.named_parameters() if name.endswith("mlp.0.weight")
     )
-    object_observation_dim = 7
-    if policy_obs.shape[-1] != base_observation_dim + object_observation_dim:
+    hoi_extra_observation_dim = 207
+    expected_observation_dim = base_observation_dim + hoi_extra_observation_dim
+    if policy_obs.shape[-1] != expected_observation_dim:
         raise ValueError(
-            "Residual HOI policy observation size does not match the base policy: "
-            f"expected {base_observation_dim + object_observation_dim}, got {policy_obs.shape[-1]}."
+            "Residual HOI policy observation size does not match the configured base + HOI features: "
+            f"expected {expected_observation_dim}, got {policy_obs.shape[-1]}."
         )
-    object_start = base_observation_dim - num_actions * 3
-    return torch.cat((policy_obs[:, :object_start], policy_obs[:, object_start + object_observation_dim :]), dim=-1)
+    return policy_obs[:, :base_observation_dim]
 
 
 @hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
