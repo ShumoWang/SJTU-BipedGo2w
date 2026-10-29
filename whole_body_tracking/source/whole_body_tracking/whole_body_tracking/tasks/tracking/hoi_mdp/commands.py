@@ -24,6 +24,8 @@ from isaaclab.utils.math import (
     yaw_quat,
 )
 
+from whole_body_tracking.tasks.tracking.hoi_mdp.rewards import object_point_cloud_distance
+
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
@@ -118,10 +120,22 @@ class MotionCommand(CommandTerm):
         self.metrics["sampling_entropy"] = torch.zeros(self.num_envs, device=self.device)
         self.metrics["sampling_top1_prob"] = torch.zeros(self.num_envs, device=self.device)
         self.metrics["sampling_top1_bin"] = torch.zeros(self.num_envs, device=self.device)
+        self.error_object_pos = torch.zeros(self.num_envs, device=self.device)
+        self.object_error_count = torch.zeros(self.num_envs, device=self.device, dtype=torch.long)
 
     @property
-    def command(self) -> torch.Tensor:  # TODO Consider again if this is the best observation
+    def command(self) -> torch.Tensor: 
         return torch.cat([self.joint_pos, self.joint_vel], dim=1)
+
+    def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
+        """Reset command state and per-episode object tracking accumulators."""
+
+        if env_ids is None:
+            env_ids = slice(None)
+        self.error_object_pos[env_ids] = 0.0
+        self.object_error_count[env_ids] = 0
+
+        return super().reset(env_ids)
 
     @property
     def joint_pos(self) -> torch.Tensor:
@@ -278,6 +292,9 @@ class MotionCommand(CommandTerm):
 
         self.metrics["error_joint_pos"] = torch.norm(self.joint_pos - self.robot_joint_pos, dim=-1)
         self.metrics["error_joint_vel"] = torch.norm(self.joint_vel - self.robot_joint_vel, dim=-1)
+        self.error_object_pos += object_point_cloud_distance(self._env, "motion", "CarryCube")
+        self.object_error_count += 1
+
 
     def _adaptive_sampling(self, env_ids: Sequence[int]):
         if self.cfg.fixed_start_step is not None:
@@ -434,6 +451,7 @@ class MotionCommand(CommandTerm):
         for i in range(len(self.cfg.body_names)):
             self.current_body_visualizers[i].visualize(self.robot_body_pos_w[:, i], self.robot_body_quat_w[:, i])
             self.goal_body_visualizers[i].visualize(self.body_pos_relative_w[:, i], self.body_quat_relative_w[:, i])
+
 
 
 @configclass

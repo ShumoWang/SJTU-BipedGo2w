@@ -68,11 +68,10 @@ def object_far(
 def task_success(
     env: ManagerBasedRLEnv,
     command_name: str,
-    asset_name: str = "CarryCube",
     object_threshold: float = 0.05,
 ) -> torch.Tensor:
     """Episode succeeds if it reaches the time limit without failure
-    and the object is still close to its reference pose.
+    and the object is close to its reference pose.
     """
 
     # Only judge success at the end of an episode.
@@ -81,13 +80,9 @@ def task_success(
     # This function must be configured after all failure termination terms.
     no_failure = ~env.termination_manager.terminated
 
-    object_close = (
-        object_point_cloud_distance(
-            env,
-            command_name=command_name,
-            asset_name=asset_name,
-        )
-        < object_threshold
-    )
-
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    mean_distance = command.error_object_pos / command.object_error_count.clamp(min=1)
+    object_close = mean_distance < object_threshold
     return reached_episode_end & no_failure & object_close
+
+

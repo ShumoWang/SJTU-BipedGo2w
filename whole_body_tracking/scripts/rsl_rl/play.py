@@ -33,6 +33,12 @@ parser.add_argument(
     default=False,
     help="Spawn a small cube and place it midway between the two front wheels.",
 )
+parser.add_argument(
+    "--disable_virtual_object_force",
+    action="store_true",
+    default=False,
+    help="Disable the reference-tracking virtual wrench applied to the object during playback.",
+)
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
@@ -155,6 +161,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     """Play with RSL-RL agent."""
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
+
+    if args_cli.disable_virtual_object_force and hasattr(env_cfg, "events"):
+        env_cfg.events.virtual_object_force = None
+        print("[INFO]: Disabled virtual object force for playback.")
 
     # Convert legacy policy/normalization fields to the installed RSL-RL format.
     agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, installed_version)

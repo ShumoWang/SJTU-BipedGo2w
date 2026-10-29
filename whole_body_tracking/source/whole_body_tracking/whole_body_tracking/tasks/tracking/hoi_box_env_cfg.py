@@ -265,6 +265,14 @@ class EventCfg:
         params={"velocity_range": VELOCITY_RANGE},
     )
 
+    virtual_object_force = EventTerm(
+        func=mdp.virtual_object_force,
+        mode="interval",
+        interval_range_s=(0.02, 0.02),
+        is_global_time=True,
+        params={"asset_name": "CarryCube", "command_name": "motion"},
+    )
+
 
 @configclass
 class RewardsCfg:
@@ -365,13 +373,20 @@ class TerminationsCfg:
         func=mdp.object_far,
         params={"command_name": "motion", "asset_name": "CarryCube", "threshold": 0.3},
     )
-    task_success = DoneTerm(
+    task_success_5cm = DoneTerm(
         func=mdp.task_success,
         time_out=True,
         params={
             "command_name": "motion",
-            "asset_name": "CarryCube",
             "object_threshold": 0.05,
+        },
+    )
+    task_success_10cm = DoneTerm(
+        func=mdp.task_success,
+        time_out=True,
+        params={
+            "command_name": "motion",
+            "object_threshold": 0.1,
         },
     )
 
@@ -383,6 +398,18 @@ class CurriculumCfg:
     pass
 
 
+@configclass
+class VirtualForceCfg:
+    kp_start = 100.0
+    kp_end = 0.0
+    kd_start = 20.0
+    kd_end = 0.0
+
+    decay_steps = 240000
+    max_force = 100.0
+    max_torque = 20.0
+
+    
 ##
 # Environment configuration
 ##
@@ -403,6 +430,7 @@ class TrackingEnvCfgHOI(ManagerBasedRLEnvCfg):
     terminations: TerminationsCfg = TerminationsCfg()
     events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
+    virtual_force: VirtualForceCfg = VirtualForceCfg()
 
     def __post_init__(self):
         """Post initialization."""
