@@ -117,6 +117,22 @@ BipedGo2w/
 └── README.md
 ```
 
+## Results
+
+The success criteria is defined as:
+
+$$
+d_{i,t}
+=
+\frac{1}{P}
+\sum_{j=1}^{P}
+\left\|
+\mathbf{x}^{\mathrm{sim}}_{i,t,j}
+-
+\mathbf{x}^{\mathrm{ref}}_{i,t,j}
+\right\|_2
+$$
+
 ## Acknowledgment and citation
 
 This project builds on and adapts ideas and open-source components from [General Motion Retargeting (GMR)](https://github.com/YanjieZe/GMR), [BeyondMimic](https://github.com/HybridRobotics/whole_body_tracking), and [ResMimic](https://resmimic.github.io/). GMR informs the motion-retargeting workflow, BeyondMimic provides the foundation for Isaac Lab motion tracking, and ResMimic informs the residual-learning approach used for HOI policy experiments. Please also consult each upstream project for its license and asset-specific terms.
