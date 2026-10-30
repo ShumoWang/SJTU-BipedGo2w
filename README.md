@@ -138,6 +138,10 @@ $$
 
 The configured thresholds are $\tau \in \{0.05\mathrm{m},\,0.10\mathrm{m}\}$. With the baseline motion policy trained, the success rate with 0.1 m is 85.7%, and the 0.05 m success rate is 30.0%. 
 
+A demo video of the trained baseline policy is available here:
+
+![Demo Video](results/rl-video-step-0.mp4)
+
 ## Acknowledgment and citation
 
 This project builds on and adapts ideas and open-source components from [General Motion Retargeting (GMR)](https://github.com/YanjieZe/GMR), [BeyondMimic](https://github.com/HybridRobotics/whole_body_tracking), and [ResMimic](https://resmimic.github.io/). GMR informs the motion-retargeting workflow, BeyondMimic provides the foundation for Isaac Lab motion tracking, and ResMimic informs the residual-learning approach used for HOI policy experiments. Please also consult each upstream project for its license and asset-specific terms.
