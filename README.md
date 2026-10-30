@@ -122,16 +122,21 @@ BipedGo2w/
 The success criteria is defined as:
 
 $$
-d_{i,t}
-=
-\frac{1}{P}
-\sum_{j=1}^{P}
-\left\|
-\mathbf{x}^{\mathrm{sim}}_{i,t,j}
--
-\mathbf{x}^{\mathrm{ref}}_{i,t,j}
-\right\|_2
+S_i(\tau) =
+\begin{cases}
+1, & \text{if episode } i \text{ reaches its time limit without failure and } \bar{d}_i < \tau, \\
+0, & \text{otherwise}.
+\end{cases}
 $$
+
+thus the success rate over $M$ evaluated episodes is
+
+$$
+\mathrm{SuccessRate}(\tau)
+= \frac{1}{M}\sum_{i=1}^{M} S_i(\tau) \times 100\%.
+$$
+
+The configured thresholds are $\tau \in \{0.05\,\mathrm{m},\,0.10\,\mathrm{m}\}$. With the baseline motion policy trained, the success rate with 0.1 m is 85.7%, and the 0.05 m success rate is 30.0%. 
 
 ## Acknowledgment and citation
 
