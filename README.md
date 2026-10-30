@@ -129,14 +129,14 @@ S_i(\tau) =
 \end{cases}
 $$
 
-thus the success rate over $M$ evaluated episodes is
+where $\bar{d}_i$ is the mean distance between the simulated object and reference object motion. Thus the success rate over $M$ evaluated episodes is
 
 $$
 \mathrm{SuccessRate}(\tau)
 = \frac{1}{M}\sum_{i=1}^{M} S_i(\tau) \times 100\%.
 $$
 
-The configured thresholds are $\tau \in \{0.05\,\mathrm{m},\,0.10\,\mathrm{m}\}$. With the baseline motion policy trained, the success rate with 0.1 m is 85.7%, and the 0.05 m success rate is 30.0%. 
+The configured thresholds are $\tau \in \{0.05\mathrm{m},\,0.10\mathrm{m}\}$. With the baseline motion policy trained, the success rate with 0.1 m is 85.7%, and the 0.05 m success rate is 30.0%. 
 
 ## Acknowledgment and citation
 
