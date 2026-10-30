@@ -140,7 +140,7 @@ The configured thresholds are $\tau \in \{0.05\mathrm{m},\,0.10\mathrm{m}\}$. Wi
 
 A demo video of the trained baseline policy is available here:
 
-![Demo Video](https://github.com/ShumoWang/SJTU-BipedGo2w/raw/main/results/rl-video-step-0.mp4)
+[Demo Video](https://github.com/ShumoWang/SJTU-BipedGo2w/raw/main/results/rl-video-step-0.mp4)
 
 ## Acknowledgment and citation
 
