@@ -2,13 +2,11 @@
 
 This repository brings together tools and experiments for retargeting human motion to the Unitree Go2W wheeled quadruped, training motion-tracking policies, and exploring object manipulation with its front wheels. The goal is to connect human–object interaction (HOI) motion data with a quadruped robot that balances on and moves with its rear wheels, achieving loco-manipulation without the need for an extra robot arm. 
 
-> **Research status:** The repository contains a Go2W motion-tracking environment and an HOI residual-policy workflow. The PedHOI pipeline currently produces and validates the baseline kinematic reference for one ground-level pick-and-place sequence.
-
 ## What this project includes
 
 ### Go2W motion tracking and HOI policy workflow
 
-- A Go2W configuration for Isaac Lab / RSL-RL, including the 12 leg joints and 4 wheel joints, flat motion tracking, and a box-interaction task.
+- A Go2W configuration for Isaac Lab, including the 12 leg joints and 4 wheel joints, flat motion tracking, and a box-interaction task.
 - A residual HOI training setup that runs a frozen flat-motion policy on the base observation and learns an interaction residual from the full policy observation.
 - Current cube pose features and four future-reference samples (0.1, 0.2, 0.4, and 0.6 seconds): anchor pose, object pose, and joint position/velocity targets.
 - HOI-specific object tracking, surface-point-cloud rewards, contact sensing, task termination criteria, and a configurable virtual object wrench used as a training aid. Playback can disable that wrench for evaluation.
@@ -142,36 +140,7 @@ A demo video of the trained baseline policy is available here:
 
 [Demo Video](https://github.com/ShumoWang/SJTU-BipedGo2w/raw/main/results/rl-video-step-0.mp4)
 
-## Acknowledgment and citation
+## Acknowledgment
 
-This project builds on and adapts ideas and open-source components from [General Motion Retargeting (GMR)](https://github.com/YanjieZe/GMR), [BeyondMimic](https://github.com/HybridRobotics/whole_body_tracking), and [ResMimic](https://resmimic.github.io/). GMR informs the motion-retargeting workflow, BeyondMimic provides the foundation for Isaac Lab motion tracking, and ResMimic informs the residual-learning approach used for HOI policy experiments. Please also consult each upstream project for its license and asset-specific terms.
-
-If this project is useful in your research, please cite the relevant upstream work:
-
-```bibtex
-@article{araujo2025gmr,
-	title   = {Retargeting Matters: General Motion Retargeting for Humanoid Motion Tracking},
-	author  = {Araujo, Joao Pedro and Ze, Yanjie and Xu, Pei and Wu, Jiajun and Liu, C. Karen},
-	journal = {arXiv preprint arXiv:2510.02252},
-	year    = {2025},
-	url     = {https://github.com/YanjieZe/GMR}
-}
-
-@article{liao2025beyondmimic,
-	title   = {BeyondMimic: From Motion Tracking to Versatile Humanoid Control via Guided Diffusion},
-	author  = {Liao, Qiayuan and Truong, Takara E. and Huang, Xiaoyu and Gao, Yuman and Tevet, Guy and Sreenath, Koushil and Liu, C. Karen},
-	journal = {arXiv preprint arXiv:2508.08241},
-	year    = {2025},
-	url     = {https://github.com/HybridRobotics/whole_body_tracking}
-}
-
-@article{zhao2025resmimic,
-	title   = {ResMimic: From General Motion Tracking to Humanoid Whole-body Loco-Manipulation via Residual Learning},
-	author  = {Zhao, Siheng and Ze, Yanjie and Wang, Yue and Liu, C. Karen and Abbeel, Pieter and Shi, Guanya and Duan, Rocky},
-	journal = {arXiv preprint arXiv:2510.05070},
-	year    = {2025},
-	url     = {https://resmimic.github.io/}
-}
-```
-
+This project builds on and adapts ideas and open-source components from [General Motion Retargeting (GMR)](https://github.com/YanjieZe/GMR), [BeyondMimic](https://github.com/HybridRobotics/whole_body_tracking), and [ResMimic](https://resmimic.github.io/). GMR informs the motion-retargeting workflow, BeyondMimic provides the foundation for Isaac Lab motion tracking, and ResMimic informs the residual-learning approach used for HOI policy experiments. 
 
