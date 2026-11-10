@@ -94,6 +94,97 @@ To record a video, add `--video --video_length 500`. `video_length` is measured 
 
 When a base policy is supplied, `play.py` exports a combined `exported/policy.pt` containing both the frozen base and HOI residual. Use that combined artifact for single-model deployment. A residual-only policy or an RSL-RL training checkpoint is not a substitute for the combined model.
 
+## Run an HOI policy in rl_sar with MuJoCo (Sim2Sim)
+
+The `rl_sar/` integration can run the exported Go2W HOI policy in MuJoCo without ROS or ROS 2. It uses the MuJoCo robot and `CarryCube` states directly to construct the same 302-dimensional observation used during Isaac Lab training. The checked-in `rl_sar/policy/go2w/whole_body_tracking/` directory already contains an example policy, reference motion, and configuration.
+
+### 1. Prepare the policy and reference motion
+
+An HOI deployment requires these matching files:
+
+```text
+rl_sar/policy/go2w/whole_body_tracking/
+├── policy.pt    # combined base + residual TorchScript policy
+├── motion.csv   # the reference motion used by this policy
+└── config.yaml  # observation, action, controller, and joint settings
+```
+
+After running the Isaac Lab `play.py` command above, copy the combined policy—not `residual_policy.pt` and not an RSL-RL `model_*.pt` checkpoint:
+
+```bash
+cd /path/to/BipedGo2w
+cp whole_body_tracking/logs/rsl_rl/<run>/exported/policy.pt \
+  rl_sar/policy/go2w/whole_body_tracking/policy.pt
+```
+
+Convert the exact NPZ reference motion used for training/playback to the rl_sar CSV format:
+
+```bash
+python3 rl_sar/src/rl_sar/scripts/convert_hoi_motion.py \
+  /path/to/motion.npz \
+  rl_sar/policy/go2w/whole_body_tracking/motion.csv
+```
+
+The converter prints the motion FPS. Set the same value in `rl_sar/policy/go2w/whole_body_tracking/config.yaml` under `motion_fps`; the current example uses 50 Hz. The policy and motion must also use the same 16-joint ordering as the training environment. The supplied configuration expects a 302D observation and a 16D action.
+
+### 2. Build rl_sar with MuJoCo
+
+On Ubuntu, install the GLFW development package if CMake cannot find `glfw3Config.cmake`:
+
+```bash
+sudo apt update
+sudo apt install libglfw3-dev
+```
+
+Build the MuJoCo target:
+
+```bash
+cd /path/to/BipedGo2w/rl_sar
+./build.sh -mj
+```
+
+The build script prepares MuJoCo, the inference runtimes, and the Go2W description files. A ROS environment is not required for this MuJoCo executable.
+
+### 3. Start the HOI simulation
+
+Run the Go2W HOI scene from the `rl_sar/` directory:
+
+```bash
+./cmake_build/bin/rl_sim_mujoco go2w scene_hoi
+```
+
+`scene_hoi.xml` contains both the Go2W model and the free `CarryCube` object. After the viewer opens, click the MuJoCo window once to give it keyboard focus, then:
+
+| Key | Action |
+| --- | --- |
+| `0` | Start the Go2W get-up sequence |
+| `2` | Enter the HOI policy and reset the robot and cube to reference frame 0 |
+| `R` | Restart from reference frame 0 while the HOI policy is active |
+| `9` | Enter the controlled get-down sequence |
+| `P` | Switch to passive mode |
+| `Enter` | Pause or resume the MuJoCo simulation |
+
+Wait for the get-up sequence to finish before pressing `2`. When the reference motion reaches its final frame, rl_sar stops policy inference, captures the measured terminal joint positions, commands zero wheel velocity, and switches to the terminal-pose hold state. Press `2` again to replay the HOI episode from the beginning.
+
+### 4. Record a MuJoCo policy trace (optional)
+
+Pass a third command-line argument to record every policy observation and action:
+
+```bash
+mkdir -p tmp
+./cmake_build/bin/rl_sim_mujoco go2w scene_hoi tmp/mujoco_trace.csv
+```
+
+The CSV is created when HOI policy inference begins after pressing `2`. It can be compared with an Isaac Lab trace using:
+
+```bash
+python3 src/rl_sar/scripts/compare_policy_traces.py \
+  /path/to/isaac_trace.csv \
+  tmp/mujoco_trace.csv
+```
+
+MuJoCo Sim2Sim obtains the cube pose directly from simulator state. A real-robot deployment must replace this privileged value with an object-pose estimate from a camera, motion-capture system, or another perception pipeline.
+
 ## Replay a retargeted Go2W reference
 
 The PedHOI-generated `episode.npz` can be replayed kinematically in Isaac Sim from the repository root:
@@ -114,6 +205,7 @@ BipedGo2w/
 ├── GMR/                # General Motion Retargeting and Go2W assets
 ├── PedHOI/             # Human/object-to-Go2W retargeting and validation
 ├── whole_body_tracking/ # Isaac Lab environments, training, playback, export
+├── rl_sar/             # Sim2Sim, Sim2Real Deployment
 └── README.md
 ```
 
@@ -173,5 +265,4 @@ If this project is useful in your research, please cite the relevant upstream wo
 	url     = {https://resmimic.github.io/}
 }
 ```
-
 
