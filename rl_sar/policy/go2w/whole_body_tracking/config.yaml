@@ -1,0 +1,61 @@
+# Copyright (c) 2024-2025 Ziqi Fan
+# SPDX-License-Identifier: Apache-2.0
+
+go2w/whole_body_tracking:
+  model_name: "policy.pt"
+  motion_file: "motion.csv"
+  motion_fps: 50.0
+  soft_joint_pos_limit_factor: 0.9
+  num_observations: 302
+  observations: ["whole_body_tracking/motion_command", "whole_body_tracking/motion_anchor_pos_b", "whole_body_tracking/motion_anchor_ori_b", "whole_body_tracking/base_lin_vel", "whole_body_tracking/base_ang_vel", "whole_body_tracking/joint_pos", "whole_body_tracking/joint_vel", "whole_body_tracking/actions", "whole_body_tracking/cube_pos_b", "whole_body_tracking/cube_quat_b", "whole_body_tracking/future_motion_anchor_pos_b", "whole_body_tracking/future_motion_anchor_ori_b", "whole_body_tracking/future_object_pos_b", "whole_body_tracking/future_object_ori_b", "whole_body_tracking/future_joint_pos_rel", "whole_body_tracking/future_joint_vel_rel"]
+  future_observation_times: [0.1, 0.2, 0.4, 0.6]
+  observations_history: []
+  observations_history_priority: "time"
+  default_commands: [0.0, 0.0, 0.0]
+  clip_obs: 100.0
+  clip_actions_lower: [-100.0, -100.0, -100.0, -100.0,
+                       -100.0, -100.0, -100.0, -100.0,
+                       -100.0, -100.0, -100.0, -100.0,
+                       -100.0, -100.0, -100.0, -100.0]
+  clip_actions_upper: [100.0, 100.0, 100.0, 100.0,
+                       100.0, 100.0, 100.0, 100.0,
+                       100.0, 100.0, 100.0, 100.0,
+                       100.0, 100.0, 100.0, 100.0]
+  rl_kp: [25.0, 25.0, 25.0, 25.0,
+          25.0, 25.0, 25.0, 25.0,
+          25.0, 25.0, 25.0, 25.0,
+          0.0, 0.0, 0.0, 0.0]
+  rl_kd: [0.5, 0.5, 0.5, 0.5,
+          0.5, 0.5, 0.5, 0.5,
+          0.5, 0.5, 0.5, 0.5,
+          0.5, 0.5, 0.5, 0.5]
+  fixed_kp: [25.0, 25.0, 25.0, 25.0,
+             25.0, 25.0, 25.0, 25.0,
+             25.0, 25.0, 25.0, 25.0,
+             0.0, 0.0, 0.0, 0.0]
+  fixed_kd: [0.5, 0.5, 0.5, 0.5,
+             0.5, 0.5, 0.5, 0.5,
+             0.5, 0.5, 0.5, 0.5,
+             0.5, 0.5, 0.5, 0.5]
+  num_of_dofs: 16
+  action_scale: [0.235, 0.235, 0.235, 0.235,
+                 0.235, 0.235, 0.235, 0.235,
+                 0.235, 0.235, 0.235, 0.235,
+                 10.0, 10.0, 10.0, 10.0]
+  wheel_indices: [12, 13, 14, 15]
+  torque_limits: [23.5, 23.5, 23.5, 23.5,
+                  23.5, 23.5, 23.5, 23.5,
+                  23.5, 23.5, 23.5, 23.5,
+                  23.5, 23.5, 23.5, 23.5]
+  default_dof_pos: [0.0, 0.0, 0.0, 0.0,
+                    0.8, 0.8, 0.8, 0.8,
+                    -1.5, -1.5, -1.5, -1.5,
+                    0.0, 0.0, 0.0, 0.0]
+  joint_mapping: [3, 0, 9, 6,
+                  4, 1, 10, 7,
+                  5, 2, 11, 8,
+                  13, 12, 15, 14]
+  mujoco_joint_names: ["FL_hip_joint", "FR_hip_joint", "RL_hip_joint", "RR_hip_joint",
+                       "FL_thigh_joint", "FR_thigh_joint", "RL_thigh_joint", "RR_thigh_joint",
+                       "FL_calf_joint", "FR_calf_joint", "RL_calf_joint", "RR_calf_joint",
+                       "FL_wheel_joint", "FR_wheel_joint", "RL_wheel_joint", "RR_wheel_joint"]
